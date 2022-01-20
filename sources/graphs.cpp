@@ -13,6 +13,13 @@ Edge::Edge(int n1, int n2)
     v2 = n2;
 }
 
+Edge::Edge(int n1, int n2, int wt)
+{
+    v1 = n1;
+    v2 = n2;
+    weight = wt;
+}
+
 int Edge::getV1()
 {
     return v1;
@@ -21,6 +28,11 @@ int Edge::getV1()
 int Edge::getV2()
 {
     return v2;
+}
+
+int Edge::getWeight()
+{
+    return weight;
 }
 
 bool Edge::operator<(const Edge &e) const
@@ -67,7 +79,7 @@ string Graph::adjacencyListsAsString(const string edgeType, const string separat
     int vertex = 0;
     for (set<int> vertexNeighbors : this->neighbors)
     {
-        graphAsString.append(to_string(vertex++)).append(" " + edgeType + " " + openBracket);
+        graphAsString.append(to_string(vertex++) + " " + edgeType + " " + openBracket);
         int i = 0;
         for (int neighbor : vertexNeighbors)
         {
@@ -79,7 +91,6 @@ string Graph::adjacencyListsAsString(const string edgeType, const string separat
         }
         graphAsString.append(closeBracket + "\n");
     }
-    //graphAsString.append(closeBracket);
     return graphAsString;
 }
 
@@ -125,7 +136,7 @@ DirectedGraph::DirectedGraph(int v, set<Edge> edges)
 string DirectedGraph::toDOT(string title) const
 {
     string graphAsString = "digraph " + title + " {\n";
-    graphAsString.append(this->adjacencyListsAsString("--", ";", "curly"));
+    graphAsString.append(this->adjacencyListsAsString("->", ";", "curly"));
     graphAsString.append("}");
     return graphAsString;
 }

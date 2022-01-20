@@ -12,11 +12,14 @@ class Edge
 private:
     int v1;
     int v2;
+    int weight;
 
 public:
     Edge(int n1, int n2);
+    Edge(int n1, int n2, int wt);
     int getV1();
     int getV2();
+    int getWeight();
     bool operator<(const Edge &e) const;
 };
 
