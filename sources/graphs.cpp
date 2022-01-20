@@ -28,35 +28,57 @@ bool Edge::operator<(const Edge &e) const
     return v1 < e.v1 || (v1 == e.v1 && v2 < e.v2);
 }
 
-int Graph::size()
+int Graph::size() const
 {
     return totalVertices;
 }
 
-vector<set<int>> Graph::getAdjacencyLists()
+vector<set<int>> Graph::getAdjacencyLists() const
 {
     return neighbors;
 }
 
 std::ostream &operator<<(std::ostream &strm, const Graph &graph)
 {
+    string graphAsString = graph.adjacencyListsAsString("->", ",", "square");
+    return strm << graphAsString;
+}
+
+string Graph::adjacencyListsAsString(const string edgeType, const string separator, const string bracketType) const
+{
+    string openBracket;
+    string closeBracket;
+    if (bracketType == "curly")
+    {
+        openBracket = "{";
+        closeBracket = "}";
+    }
+    else if (bracketType == "square")
+    {
+        openBracket = "[";
+        closeBracket = "]";
+    } else {
+        openBracket = "(";
+        closeBracket = ")";
+    }
     string graphAsString = "";
     int vertex = 0;
-    for (set<int> vertexNeighbors : graph.neighbors)
+    for (set<int> vertexNeighbors : this->neighbors)
     {
-        graphAsString.append(to_string(vertex++)).append(" -> [");
+        graphAsString.append(to_string(vertex++)).append(" " + edgeType + " " + openBracket);
         int i = 0;
         for (int neighbor : vertexNeighbors)
         {
             graphAsString.append(to_string(neighbor));
             if (i++ < vertexNeighbors.size() - 1)
             {
-                graphAsString.append(", ");
+                graphAsString.append(separator + " ");
             }
         }
-        graphAsString.append("]\n");
+        graphAsString.append(closeBracket + "\n");
     }
-    return strm << graphAsString;
+    //graphAsString.append(closeBracket);
+    return graphAsString;
 }
 
 UndirectedGraph::UndirectedGraph(int v, set<Edge> edges)
@@ -75,6 +97,14 @@ UndirectedGraph::UndirectedGraph(int v, set<Edge> edges)
     }
 }
 
+string UndirectedGraph::toDOT(string title) const
+{
+    string graphAsString = "strict graph " + title + " {\n";
+    graphAsString.append(this->adjacencyListsAsString("--", ";", "curly"));
+    graphAsString.append("}");
+    return graphAsString;
+}
+
 DirectedGraph::DirectedGraph(int v, set<Edge> edges)
 {
     totalVertices = v;
@@ -88,6 +118,14 @@ DirectedGraph::DirectedGraph(int v, set<Edge> edges)
     {
         neighbors[e.getV1()].insert(e.getV2());
     }
+}
+
+string DirectedGraph::toDOT(string title) const
+{
+    string graphAsString = "digraph " + title + " {\n";
+    graphAsString.append(this->adjacencyListsAsString("--", ";", "curly"));
+    graphAsString.append("}");
+    return graphAsString;
 }
 
 pair<int, set<Edge>> *GraphFactory::verticesAndEdgeSetFromFile(string inputFilePath)
@@ -131,4 +169,12 @@ DirectedGraph *GraphFactory::createDirectedGraphFromFile(string inputFile)
 {
     pair<int, set<Edge>> verticesAndEdges = *this->verticesAndEdgeSetFromFile(inputFile);
     return new DirectedGraph(verticesAndEdges.first, verticesAndEdges.second);
+}
+
+void GraphFactory::generateDOTFile(const Graph &graph, const string filePath, const string title)
+{
+    string fileContent = graph.toDOT(title);
+    ofstream outputFile(filePath + title + ".dat", std::ios_base::out);
+    outputFile << fileContent;
+    outputFile.close();
 }
