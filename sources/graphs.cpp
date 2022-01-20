@@ -57,7 +57,9 @@ string Graph::adjacencyListsAsString(const string edgeType, const string separat
     {
         openBracket = "[";
         closeBracket = "]";
-    } else {
+    }
+    else
+    {
         openBracket = "(";
         closeBracket = ")";
     }
