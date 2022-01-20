@@ -90,13 +90,12 @@ DirectedGraph::DirectedGraph(int v, set<Edge> edges)
     }
 }
 
-pair<int, set<Edge>> *GraphFactory::verticesAndEdgeSetFromFile(string inputFile)
+pair<int, set<Edge>> *GraphFactory::verticesAndEdgeSetFromFile(string inputFilePath)
 {
     int totalVertices = 0;
     set<Edge> edges;
     string line;
-    string filePath = "..\\data\\" + inputFile;
-    ifstream file(filePath);
+    ifstream file(inputFilePath);
     if (file.is_open())
     {
         // first line contains number of vertices in the graph
