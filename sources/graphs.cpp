@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <map>
 #include <fstream>
 #include <set>
 #include <string>
@@ -50,17 +51,29 @@ bool Vertex<T>::operator==(const Vertex<T> &v) const
 }
 
 template <typename T>
+void Vertex<T>::addNeighbor(Vertex<T> *n)
+{
+    adjacentNodes.insert(n);
+}
+
+template <typename T>
+std::set<Vertex<T> *> Vertex<T>::getAdjacentNodes()
+{
+    return adjacentNodes;
+}
+
+template <typename T>
 Edge<T>::Edge() {}
 
 template <typename T>
-Edge<T>::Edge(Vertex<T> n1, Vertex<T> n2)
+Edge<T>::Edge(Vertex<T> *n1, Vertex<T> *n2)
 {
     v1 = n1;
     v2 = n2;
 }
 
 template <typename T>
-Edge<T>::Edge(Vertex<T> n1, Vertex<T> n2, int wt)
+Edge<T>::Edge(Vertex<T> *n1, Vertex<T> *n2, int wt)
 {
     v1 = n1;
     v2 = n2;
@@ -68,13 +81,13 @@ Edge<T>::Edge(Vertex<T> n1, Vertex<T> n2, int wt)
 }
 
 template <typename T>
-Vertex<T> Edge<T>::getV1()
+Vertex<T> *Edge<T>::getV1()
 {
     return v1;
 }
 
 template <typename T>
-Vertex<T> Edge<T>::getV2()
+Vertex<T> *Edge<T>::getV2()
 {
     return v2;
 }
@@ -98,9 +111,9 @@ int Graph<T>::size() const
 }
 
 template <typename T>
-vector<set<Vertex<T>>> Graph<T>::getAdjacencyLists() const
+std::set<Vertex<T> *> Graph<T>::getVertices()
 {
-    return neighbors;
+    return vertices;
 }
 
 template <typename T>
@@ -124,15 +137,14 @@ string Graph<T>::adjacencyListsAsString(const string edgeType, const string sepa
         closeBracket = ")";
     }
     string graphAsString = "";
-    int vertex = 0;
-    for (set<Vertex<T>> vertexNeighbors : this->neighbors)
+    for (Vertex<T> *v : this->vertices)
     {
-        graphAsString.append(to_string(vertex++) + " " + edgeType + " " + openBracket);
+        graphAsString.append(v->getLabel() + " " + edgeType + " " + openBracket);
         int i = 0;
-        for (Vertex<T> neighbor : vertexNeighbors)
+        for (Vertex<T> *neighbor : v->getAdjacentNodes())
         {
-            graphAsString.append(neighbor.getLabel());
-            if (i++ < vertexNeighbors.size() - 1)
+            graphAsString.append((*neighbor).getLabel());
+            if (i++ < v->getAdjacentNodes().size() - 1)
             {
                 graphAsString.append(separator + " ");
             }
@@ -143,19 +155,23 @@ string Graph<T>::adjacencyListsAsString(const string edgeType, const string sepa
 }
 
 template <typename T>
-UndirectedGraph<T>::UndirectedGraph(int v, set<Edge<T>> edges)
+UndirectedGraph<T>::UndirectedGraph(set<Edge<T>> edges)
 {
-    this->totalVertices = v;
-    for (int i = 0; i < this->totalVertices; i++)
-    {
-        set<Vertex<T>> s;
-        this->neighbors.push_back(s);
-    }
-
     for (Edge<T> e : edges)
     {
-        this->neighbors[e.getV1().getId()].insert(e.getV2());
-        this->neighbors[e.getV2().getId()].insert(e.getV1());
+        e.getV1()->addNeighbor(e.getV2());
+        e.getV2()->addNeighbor(e.getV1());
+        this->edges.insert(&e);
+        if (this->vertices.find(e.getV1()) == this->vertices.end())
+        {
+            this->vertices.insert(e.getV1());
+            this->totalVertices++;
+        }
+        if (this->vertices.find(e.getV2()) == this->vertices.end())
+        {
+            this->vertices.insert(e.getV2());
+            this->totalVertices++;
+        }
     }
 }
 
@@ -169,18 +185,22 @@ string UndirectedGraph<T>::toDOT(string title) const
 }
 
 template <typename T>
-DirectedGraph<T>::DirectedGraph(int v, set<Edge<T>> edges)
+DirectedGraph<T>::DirectedGraph(set<Edge<T>> edges)
 {
-    this->totalVertices = v;
-    for (int i = 0; i < this->totalVertices; i++)
-    {
-        set<Vertex<T>> s;
-        this->neighbors.push_back(s);
-    }
-
     for (Edge<T> e : edges)
     {
-        this->neighbors[e.getV1().getId()].insert(e.getV2());
+        e.getV1()->addNeighbor(e.getV2());
+        this->edges.insert(&e);
+        if (this->vertices.find(e.getV1()) == this->vertices.end())
+        {
+            this->vertices.insert(e.getV1());
+            this->totalVertices++;
+        }
+        if (this->vertices.find(e.getV2()) == this->vertices.end())
+        {
+            this->vertices.insert(e.getV2());
+            this->totalVertices++;
+        }
     }
 }
 
@@ -219,7 +239,7 @@ pair<int, set<Edge<T>>> *GraphFactory<T>::verticesNumberAndEdgeSetFromFile(strin
                 line.erase(0, pos + 1); // + 1 -> delimiter's length
             }
             edgeVertices[tokenPosition] = line.substr(pos + 1, std::string::npos);
-            edges.insert(Edge(Vertex(stoi(edgeVertices[0]), "a", 0), Vertex(stoi(edgeVertices[1]), "b", 0)));
+            //edges.insert(Edge(Vertex(stoi(edgeVertices[0]), "a", 0), Vertex(stoi(edgeVertices[1]), "b", 0)));
         }
     }
     return new pair<int, set<Edge<T>>>(totalVertices, edges);
@@ -229,14 +249,14 @@ template <typename T>
 UndirectedGraph<T> *GraphFactory<T>::createUndirectedGraphFromFile(string inputFile)
 {
     pair<int, set<Edge<T>>> verticesAndEdges = *this->verticesNumberAndEdgeSetFromFile(inputFile);
-    return new UndirectedGraph(verticesAndEdges.first, verticesAndEdges.second);
+    return new UndirectedGraph(verticesAndEdges.second);
 }
 
 template <typename T>
 DirectedGraph<T> *GraphFactory<T>::createDirectedGraphFromFile(string inputFile)
 {
     pair<int, set<Edge<T>>> verticesAndEdges = *this->verticesNumberAndEdgeSetFromFile(inputFile);
-    return new DirectedGraph(verticesAndEdges.first, verticesAndEdges.second);
+    return new DirectedGraph(verticesAndEdges.second);
 }
 
 template <typename T>
