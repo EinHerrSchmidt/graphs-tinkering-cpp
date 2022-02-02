@@ -78,7 +78,7 @@ protected:
     std::string toDOT(std::string title) const;
 
 public:
-    UndirectedGraph(std::set<Edge<T>> edges);
+    UndirectedGraph(std::set<Vertex<T> *> vertices, std::set<Edge<T>> edges);
 };
 
 template <typename T>
@@ -88,7 +88,7 @@ protected:
     std::string toDOT(std::string title) const;
 
 public:
-    DirectedGraph(std::set<Edge<T>> edges);
+    DirectedGraph(std::set<Vertex<T> *> vertices, std::set<Edge<T>> edges);
 };
 
 template <typename T>
@@ -98,6 +98,8 @@ private:
     std::pair<int, std::set<Edge<T>>> *verticesNumberAndEdgeSetFromFile(std::string inputFile);
 
 public:
+    UndirectedGraph<T> *createUndirectedGraph(std::string inputFile);
+    DirectedGraph<T> *createDirectedGraph(std::string inputFile);
     UndirectedGraph<T> *createUndirectedGraphFromFile(std::string inputFile);
     DirectedGraph<T> *createDirectedGraphFromFile(std::string inputFile);
     void generateDOTFile(const Graph<T> &graph, const std::string filePath, const std::string title);

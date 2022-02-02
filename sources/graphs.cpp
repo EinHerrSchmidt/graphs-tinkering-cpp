@@ -155,13 +155,20 @@ string Graph<T>::adjacencyListsAsString(const string edgeType, const string sepa
 }
 
 template <typename T>
-UndirectedGraph<T>::UndirectedGraph(set<Edge<T>> edges)
+UndirectedGraph<T>::UndirectedGraph(set<Vertex<T> *> vertices, set<Edge<T>> edges)
 {
+    this->totalVertices = vertices.size();
+    for (Vertex<T> *v : vertices)
+    {
+        this->vertices.insert(v);
+    }
+
     for (Edge<T> e : edges)
     {
         e.getV1()->addNeighbor(e.getV2());
         e.getV2()->addNeighbor(e.getV1());
         this->edges.insert(&e);
+        /*
         if (this->vertices.find(e.getV1()) == this->vertices.end())
         {
             this->vertices.insert(e.getV1());
@@ -172,6 +179,7 @@ UndirectedGraph<T>::UndirectedGraph(set<Edge<T>> edges)
             this->vertices.insert(e.getV2());
             this->totalVertices++;
         }
+        */
     }
 }
 
@@ -185,12 +193,19 @@ string UndirectedGraph<T>::toDOT(string title) const
 }
 
 template <typename T>
-DirectedGraph<T>::DirectedGraph(set<Edge<T>> edges)
+DirectedGraph<T>::DirectedGraph(set<Vertex<T> *> vertices, set<Edge<T>> edges)
 {
+    this->totalVertices = vertices.size();
+    for (Vertex<T> *v : vertices)
+    {
+        this->vertices.insert(v);
+    }
+
     for (Edge<T> e : edges)
     {
         e.getV1()->addNeighbor(e.getV2());
         this->edges.insert(&e);
+        /*
         if (this->vertices.find(e.getV1()) == this->vertices.end())
         {
             this->vertices.insert(e.getV1());
@@ -201,6 +216,7 @@ DirectedGraph<T>::DirectedGraph(set<Edge<T>> edges)
             this->vertices.insert(e.getV2());
             this->totalVertices++;
         }
+        */
     }
 }
 
@@ -246,17 +262,28 @@ pair<int, set<Edge<T>>> *GraphFactory<T>::verticesNumberAndEdgeSetFromFile(strin
 }
 
 template <typename T>
+UndirectedGraph<T> *createUndirectedGraph(std::string inputFile)
+{
+}
+template <typename T>
+DirectedGraph<T> *createDirectedGraph(std::string inputFile)
+{
+}
+
+template <typename T>
 UndirectedGraph<T> *GraphFactory<T>::createUndirectedGraphFromFile(string inputFile)
 {
     pair<int, set<Edge<T>>> verticesAndEdges = *this->verticesNumberAndEdgeSetFromFile(inputFile);
-    return new UndirectedGraph(verticesAndEdges.second);
+    // return new UndirectedGraph(verticesAndEdges.second);
+    return NULL;
 }
 
 template <typename T>
 DirectedGraph<T> *GraphFactory<T>::createDirectedGraphFromFile(string inputFile)
 {
     pair<int, set<Edge<T>>> verticesAndEdges = *this->verticesNumberAndEdgeSetFromFile(inputFile);
-    return new DirectedGraph(verticesAndEdges.second);
+    // return new DirectedGraph(verticesAndEdges.second);
+    return NULL;
 }
 
 template <typename T>
