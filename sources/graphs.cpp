@@ -282,7 +282,6 @@ template <typename T>
 UndirectedGraph<T> *GraphFactory<T>::createUndirectedGraphFromFile(string inputFile)
 {
     pair<int, set<Edge<T>>> verticesAndEdges = *this->verticesNumberAndEdgeSetFromFile(inputFile);
-    // return new UndirectedGraph(verticesAndEdges.second);
     return NULL;
 }
 
@@ -290,7 +289,6 @@ template <typename T>
 DirectedGraph<T> *GraphFactory<T>::createDirectedGraphFromFile(string inputFile)
 {
     pair<int, set<Edge<T>>> verticesAndEdges = *this->verticesNumberAndEdgeSetFromFile(inputFile);
-    // return new DirectedGraph(verticesAndEdges.second);
     return NULL;
 }
 
