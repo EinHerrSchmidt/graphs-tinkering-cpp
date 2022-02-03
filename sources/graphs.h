@@ -15,7 +15,7 @@ private:
     int id;
     std::string label;
     T value;
-    std::set<Vertex<T> *> adjacentNodes;
+    std::set<Vertex<T>> adjacentNodes;
 
 public:
     Vertex();
@@ -23,8 +23,8 @@ public:
     int getId();
     std::string getLabel();
     T getValue();
-    std::set<Vertex<T> *> getAdjacentNodes();
-    void addNeighbor(Vertex<T> *n);
+    std::set<Vertex<T>> getAdjacentNodes();
+    void addNeighbor(Vertex<T> n);
     bool operator<(const Vertex<T> &v) const;
     bool operator==(const Vertex<T> &v) const;
 };
@@ -33,16 +33,16 @@ template <typename T>
 class Edge
 {
 private:
-    Vertex<T> *v1;
-    Vertex<T> *v2;
+    Vertex<T> v1;
+    Vertex<T> v2;
     int weight;
 
 public:
     Edge();
-    Edge(Vertex<T> *n1, Vertex<T> *n2);
-    Edge(Vertex<T> *n1, Vertex<T> *n2, int wt);
-    Vertex<T> *getV1();
-    Vertex<T> *getV2();
+    Edge(Vertex<T> n1, Vertex<T> n2);
+    Edge(Vertex<T> n1, Vertex<T> n2, int wt);
+    Vertex<T> getV1();
+    Vertex<T> getV2();
     int getWeight();
     bool operator<(const Edge<T> &e) const;
 };
@@ -51,16 +51,18 @@ template <typename T>
 class Graph
 {
 protected:
-    int totalVertices;
-    std::set<Vertex<T> *> vertices;
-    std::set<Edge<T> *> edges;
+    std::set<Vertex<T>> vertices;
+    std::set<Edge<T>> edges;
     template <typename E>
     friend std::ostream &operator<<(std::ostream &, const Graph<E> &);
     std::string adjacencyListsAsString(const std::string edgeType, const std::string separator, const std::string bracketType) const;
+    void updateVertices(Vertex<T> v1, Vertex<T> v2);
+    void checkEdgeConsistency(Edge<T> e);
 
 public:
     int size() const;
-    std::set<Vertex<T> *> getVertices();
+    std::set<Vertex<T>> getVertices();
+    std::set<Edge<T>> getEdges();
     virtual std::string toDOT(std::string title) const = 0; // this is an abstract method (pure virtual function)
 };
 
@@ -78,7 +80,7 @@ protected:
     std::string toDOT(std::string title) const;
 
 public:
-    UndirectedGraph(std::set<Vertex<T> *> vertices, std::set<Edge<T>> edges);
+    UndirectedGraph(std::set<Vertex<T>> vertices, std::set<Edge<T>> edges);
 };
 
 template <typename T>
@@ -88,7 +90,7 @@ protected:
     std::string toDOT(std::string title) const;
 
 public:
-    DirectedGraph(std::set<Vertex<T> *> vertices, std::set<Edge<T>> edges);
+    DirectedGraph(std::set<Vertex<T>> vertices, std::set<Edge<T>> edges);
 };
 
 template <typename T>

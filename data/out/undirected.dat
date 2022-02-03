@@ -1,7 +1,7 @@
 strict graph undirected {
+A -- {B; D}
+B -- {A; C}
+C -- {B; D}
+D -- {A; C}
 E -- {}
-D -- {C; A}
-C -- {D; B}
-B -- {C; A}
-A -- {D; B}
 }

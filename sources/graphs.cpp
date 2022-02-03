@@ -41,23 +41,23 @@ std::string getLabel();
 template <typename T>
 bool Vertex<T>::operator<(const Vertex<T> &v) const
 {
-    return value < v.value;
+    return id < v.id;
 }
 
 template <typename T>
 bool Vertex<T>::operator==(const Vertex<T> &v) const
 {
-    return value == v.value;
+    return id == v.id;
 }
 
 template <typename T>
-void Vertex<T>::addNeighbor(Vertex<T> *n)
+void Vertex<T>::addNeighbor(Vertex<T> n)
 {
     adjacentNodes.insert(n);
 }
 
 template <typename T>
-std::set<Vertex<T> *> Vertex<T>::getAdjacentNodes()
+std::set<Vertex<T>> Vertex<T>::getAdjacentNodes()
 {
     return adjacentNodes;
 }
@@ -66,14 +66,14 @@ template <typename T>
 Edge<T>::Edge() {}
 
 template <typename T>
-Edge<T>::Edge(Vertex<T> *n1, Vertex<T> *n2)
+Edge<T>::Edge(Vertex<T> n1, Vertex<T> n2)
 {
     v1 = n1;
     v2 = n2;
 }
 
 template <typename T>
-Edge<T>::Edge(Vertex<T> *n1, Vertex<T> *n2, int wt)
+Edge<T>::Edge(Vertex<T> n1, Vertex<T> n2, int wt)
 {
     v1 = n1;
     v2 = n2;
@@ -81,13 +81,13 @@ Edge<T>::Edge(Vertex<T> *n1, Vertex<T> *n2, int wt)
 }
 
 template <typename T>
-Vertex<T> *Edge<T>::getV1()
+Vertex<T> Edge<T>::getV1()
 {
     return v1;
 }
 
 template <typename T>
-Vertex<T> *Edge<T>::getV2()
+Vertex<T> Edge<T>::getV2()
 {
     return v2;
 }
@@ -107,13 +107,19 @@ bool Edge<T>::operator<(const Edge<T> &e) const
 template <typename T>
 int Graph<T>::size() const
 {
-    return totalVertices;
+    return vertices.size();
 }
 
 template <typename T>
-std::set<Vertex<T> *> Graph<T>::getVertices()
+std::set<Vertex<T>> Graph<T>::getVertices()
 {
     return vertices;
+}
+
+template <typename T>
+std::set<Edge<T>> Graph<T>::getEdges()
+{
+    return edges;
 }
 
 template <typename T>
@@ -137,14 +143,14 @@ string Graph<T>::adjacencyListsAsString(const string edgeType, const string sepa
         closeBracket = ")";
     }
     string graphAsString = "";
-    for (Vertex<T> *v : this->vertices)
+    for (Vertex<T> v : this->vertices)
     {
-        graphAsString.append(v->getLabel() + " " + edgeType + " " + openBracket);
+        graphAsString.append(v.getLabel() + " " + edgeType + " " + openBracket);
         int i = 0;
-        for (Vertex<T> *neighbor : v->getAdjacentNodes())
+        for (Vertex<T> neighbor : v.getAdjacentNodes())
         {
-            graphAsString.append((*neighbor).getLabel());
-            if (i++ < v->getAdjacentNodes().size() - 1)
+            graphAsString.append((neighbor).getLabel());
+            if (i++ < v.getAdjacentNodes().size() - 1)
             {
                 graphAsString.append(separator + " ");
             }
@@ -155,31 +161,42 @@ string Graph<T>::adjacencyListsAsString(const string edgeType, const string sepa
 }
 
 template <typename T>
-UndirectedGraph<T>::UndirectedGraph(set<Vertex<T> *> vertices, set<Edge<T>> edges)
+void Graph<T>::updateVertices(Vertex<T> v1, Vertex<T> v2)
 {
-    this->totalVertices = vertices.size();
-    for (Vertex<T> *v : vertices)
-    {
-        this->vertices.insert(v);
-    }
+    this->vertices.erase(v1);
+    this->vertices.erase(v2);
+    this->vertices.insert(v1);
+    this->vertices.insert(v2);
+}
 
-    for (Edge<T> e : edges)
+template <typename T>
+void Graph<T>::checkEdgeConsistency(Edge<T> e)
+{
+    if (this->vertices.find(e.getV1()) == this->vertices.end())
     {
-        e.getV1()->addNeighbor(e.getV2());
-        e.getV2()->addNeighbor(e.getV1());
-        this->edges.insert(&e);
-        /*
-        if (this->vertices.find(e.getV1()) == this->vertices.end())
-        {
-            this->vertices.insert(e.getV1());
-            this->totalVertices++;
-        }
-        if (this->vertices.find(e.getV2()) == this->vertices.end())
-        {
-            this->vertices.insert(e.getV2());
-            this->totalVertices++;
-        }
-        */
+        throw invalid_argument("Vertex " + to_string(e.getV1().getId()) + " belongs to an edge, but it is not in the vertexes set.");
+    }
+    if (this->vertices.find(e.getV2()) == this->vertices.end())
+    {
+        throw invalid_argument("Vertex " + to_string(e.getV2().getId()) + " belongs to an edge, but it is not in the vertexes set.");
+    }
+}
+
+template <typename T>
+UndirectedGraph<T>::UndirectedGraph(set<Vertex<T>> vertices, set<Edge<T>> edges)
+{
+    this->vertices = vertices;
+    this->edges = edges;
+
+    for (Edge<T> e : this->edges)
+    {
+        this->checkEdgeConsistency(e);
+
+        Vertex<T> v1 = *this->vertices.find(e.getV1());
+        Vertex<T> v2 = *this->vertices.find(e.getV2());
+        v1.addNeighbor(v2);
+        v2.addNeighbor(v1);
+        this->updateVertices(v1, v2);
     }
 }
 
@@ -193,30 +210,21 @@ string UndirectedGraph<T>::toDOT(string title) const
 }
 
 template <typename T>
-DirectedGraph<T>::DirectedGraph(set<Vertex<T> *> vertices, set<Edge<T>> edges)
+DirectedGraph<T>::DirectedGraph(set<Vertex<T>> vertices, set<Edge<T>> edges)
 {
-    this->totalVertices = vertices.size();
-    for (Vertex<T> *v : vertices)
-    {
-        this->vertices.insert(v);
-    }
+    this->vertices = vertices;
+    this->edges = edges;
 
-    for (Edge<T> e : edges)
+    for (Edge<T> e : this->edges)
     {
-        e.getV1()->addNeighbor(e.getV2());
-        this->edges.insert(&e);
-        /*
-        if (this->vertices.find(e.getV1()) == this->vertices.end())
-        {
-            this->vertices.insert(e.getV1());
-            this->totalVertices++;
-        }
-        if (this->vertices.find(e.getV2()) == this->vertices.end())
-        {
-            this->vertices.insert(e.getV2());
-            this->totalVertices++;
-        }
-        */
+        this->checkEdgeConsistency(e);
+
+        Vertex<T> v1 = *this->vertices.find(e.getV1());
+        Vertex<T> v2 = *this->vertices.find(e.getV2());
+        v1.addNeighbor(v2);
+        this->updateVertices(v1, v2);
+
+        this->edges.insert(e);
     }
 }
 
