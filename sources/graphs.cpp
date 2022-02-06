@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <map>
 #include <fstream>
 #include <set>
@@ -20,13 +21,13 @@ Vertex<T>::Vertex(int i, string l, T v)
 }
 
 template <typename T>
-int Vertex<T>::getId()
+int Vertex<T>::getId() const
 {
     return id;
 }
 
 template <typename T>
-string Vertex<T>::getLabel()
+string Vertex<T>::getLabel() const
 {
     return label;
 }
@@ -179,6 +180,111 @@ void Graph<T>::checkEdgeConsistency(Edge<T> e)
     if (this->vertices.find(e.getV2()) == this->vertices.end())
     {
         throw invalid_argument("Vertex " + to_string(e.getV2().getId()) + " belongs to an edge, but it is not in the vertexes set.");
+    }
+}
+
+template <typename T>
+map<Vertex<T>, vector<Vertex<T>>> Graph<T>::minPaths(Vertex<T> origin)
+{
+    struct AugmentedVertex
+    {
+        Vertex<T> vertex;
+        int cost;
+        AugmentedVertex *parent;
+
+        AugmentedVertex(Vertex<T> v)
+        {
+            vertex = v;
+        }
+
+        AugmentedVertex(Vertex<T> v, int c, AugmentedVertex *p)
+        {
+            vertex = v;
+            cost = c;
+            parent = p;
+        }
+
+        bool operator<(const AugmentedVertex &v) const
+        {
+            return cost < v.cost || (cost == v.cost && vertex.getId() < v.vertex.getId());
+        }
+    };
+
+    map<Vertex<T>, vector<Vertex<T>>> pathsTable;
+
+    set<int> visitedIds;
+    set<AugmentedVertex> visited;
+    vector<int> costs;
+    set<AugmentedVertex> queue;
+    for (Vertex<T> v : this->vertices)
+    {
+        int cost;
+        if (v == origin)
+        {
+            cost = 0;
+        }
+        else
+        {
+            cost = INT_MAX;
+        }
+        AugmentedVertex av(v, cost, NULL);
+        queue.insert(av);
+        costs[v.getId()] = cost;
+    }
+    while (!queue.empty())
+    {
+        AugmentedVertex u = *queue.begin();
+        queue.erase(u);
+
+        visitedIds.insert(u.vertex.getId());
+        visited.insert(u);
+        for (Vertex<T> v : u.vertex.getAdjacentNodes())
+        {
+            if (visitedIds.find(v.getId()) == visitedIds.end())
+            {
+                continue;
+            }
+            Edge<T> uv = *this->edges.find(Edge(u.vertex, v));
+
+            if (u.cost + uv.getWeight() < costs[v.getId()])
+            {
+                AugmentedVertex toDelete(v, costs[v.getId()], NULL);
+                queue.erase(toDelete);
+                queue.insert(AugmentedVertex(v, u.cost + uv.getWeight(), &u));
+                costs[v.getId()] = u.cost + uv.getWeight();
+            }
+        }
+    }
+    for (AugmentedVertex a : visited)
+    {
+        if (a.vertex == origin)
+        {
+            continue;
+        }
+        vector<Vertex<T>> path;
+        while (!((*a.parent).vertex == origin))
+        {
+            path.push_back((*a.parent).vertex);
+        }
+        pathsTable.insert({a.vertex, path});
+    }
+    return pathsTable;
+}
+
+template <typename T>
+void Graph<T>::printMinPath(Vertex<T> origin)
+{
+    map<Vertex<T>, vector<Vertex<T>>> pathsTable = this->minPaths(origin);
+    for (typename map<Vertex<T>, vector<Vertex<T>>>::iterator it = pathsTable.begin(); it != pathsTable.end(); it++)
+    {
+        cout << it->first.getLabel() << " -- ";
+        for (typename vector<Vertex<T>>::reverse_iterator i = it->second.rbegin();
+             i != it->second.rend(); ++i)
+        {
+            cout << i->getLabel()
+                 << " -- ";
+        }
+        cout << "\n";
     }
 }
 

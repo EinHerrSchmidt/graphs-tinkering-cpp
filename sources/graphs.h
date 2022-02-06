@@ -20,8 +20,8 @@ private:
 public:
     Vertex();
     Vertex(int i, std::string l, T v);
-    int getId();
-    std::string getLabel();
+    int getId() const;
+    std::string getLabel() const;
     T getValue();
     std::set<Vertex<T>> getAdjacentNodes();
     void addNeighbor(Vertex<T> n);
@@ -58,12 +58,14 @@ protected:
     std::string adjacencyListsAsString(const std::string edgeType, const std::string separator, const std::string bracketType) const;
     void updateVertices(Vertex<T> v1, Vertex<T> v2);
     void checkEdgeConsistency(Edge<T> e);
+    std::map<Vertex<T>, std::vector<Vertex<T>>> minPaths(Vertex<T> origin);
 
 public:
     int size() const;
     std::set<Vertex<T>> getVertices();
     std::set<Edge<T>> getEdges();
     virtual std::string toDOT(std::string title) const = 0; // this is an abstract method (pure virtual function)
+    void printMinPath(Vertex<T> origin);
 };
 
 template <typename T>
