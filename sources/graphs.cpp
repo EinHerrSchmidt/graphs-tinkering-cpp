@@ -263,7 +263,7 @@ pair<int, set<Edge<T>>> *GraphFactory<T>::verticesNumberAndEdgeSetFromFile(strin
                 line.erase(0, pos + 1); // + 1 -> delimiter's length
             }
             edgeVertices[tokenPosition] = line.substr(pos + 1, std::string::npos);
-            //edges.insert(Edge(Vertex(stoi(edgeVertices[0]), "a", 0), Vertex(stoi(edgeVertices[1]), "b", 0)));
+            // edges.insert(Edge(Vertex(stoi(edgeVertices[0]), "a", 0), Vertex(stoi(edgeVertices[1]), "b", 0)));
         }
     }
     return new pair<int, set<Edge<T>>>(totalVertices, edges);
