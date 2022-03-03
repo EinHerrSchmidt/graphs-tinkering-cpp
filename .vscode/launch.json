@@ -8,7 +8,7 @@
             "name": "g++.exe - Compila ed esegui il debug del file attivo",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
+            "program": "${fileDirname}\\demo.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

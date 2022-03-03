@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <map>
 #include <fstream>
 #include <set>
@@ -210,11 +209,8 @@ map<Vertex<T>, vector<Vertex<T>>> Graph<T>::minPaths(Vertex<T> origin)
         }
     };
 
-    map<Vertex<T>, vector<Vertex<T>>> pathsTable;
-
-    set<int> visitedIds;
-    set<AugmentedVertex> visited;
-    vector<int> costs;
+    map<Vertex<T>, Vertex<T>> parents;
+    vector<int> costs(this->size());
     set<AugmentedVertex> queue;
     for (Vertex<T> v : this->vertices)
     {
@@ -236,37 +232,41 @@ map<Vertex<T>, vector<Vertex<T>>> Graph<T>::minPaths(Vertex<T> origin)
         AugmentedVertex u = *queue.begin();
         queue.erase(u);
 
-        visitedIds.insert(u.vertex.getId());
-        visited.insert(u);
         for (Vertex<T> v : u.vertex.getAdjacentNodes())
         {
-            if (visitedIds.find(v.getId()) == visitedIds.end())
-            {
-                continue;
-            }
             Edge<T> uv = *this->edges.find(Edge(u.vertex, v));
 
             if (u.cost + uv.getWeight() < costs[v.getId()])
             {
                 AugmentedVertex toDelete(v, costs[v.getId()], NULL);
                 queue.erase(toDelete);
-                queue.insert(AugmentedVertex(v, u.cost + uv.getWeight(), &u));
+                queue.insert(AugmentedVertex(*this->vertices.find(v), u.cost + uv.getWeight(), NULL));
                 costs[v.getId()] = u.cost + uv.getWeight();
+                parents[*this->vertices.find(v)] = *this->vertices.find(u.vertex);
             }
         }
     }
-    for (AugmentedVertex a : visited)
+    return this->buildPathsTable(origin, parents);
+}
+
+template <typename T>
+map<Vertex<T>, vector<Vertex<T>>> Graph<T>::buildPathsTable(Vertex<T> origin, map<Vertex<T>, Vertex<T>> parents)
+{
+    map<Vertex<T>, vector<Vertex<T>>> pathsTable;
+    for (Vertex<T> v : this->vertices)
     {
-        if (a.vertex == origin)
-        {
-            continue;
-        }
         vector<Vertex<T>> path;
-        while (!((*a.parent).vertex == origin))
+        Vertex<T> current = v;
+
+        auto it = parents.find(current);
+        while (it != parents.end())
         {
-            path.push_back((*a.parent).vertex);
+            path.push_back(current);
+            current = it->second;
+            it = parents.find(current);
         }
-        pathsTable.insert({a.vertex, path});
+        path.push_back(origin);
+        pathsTable[v] = path;
     }
     return pathsTable;
 }
@@ -277,12 +277,15 @@ void Graph<T>::printMinPath(Vertex<T> origin)
     map<Vertex<T>, vector<Vertex<T>>> pathsTable = this->minPaths(origin);
     for (typename map<Vertex<T>, vector<Vertex<T>>>::iterator it = pathsTable.begin(); it != pathsTable.end(); it++)
     {
-        cout << it->first.getLabel() << " -- ";
+        cout << it->first.getLabel() << ": ";
         for (typename vector<Vertex<T>>::reverse_iterator i = it->second.rbegin();
              i != it->second.rend(); ++i)
         {
-            cout << i->getLabel()
-                 << " -- ";
+            cout << i->getLabel();
+            if (i + 1 != it->second.rend())
+            {
+                cout << " -> ";
+            }
         }
         cout << "\n";
     }
@@ -329,8 +332,6 @@ DirectedGraph<T>::DirectedGraph(set<Vertex<T>> vertices, set<Edge<T>> edges)
         Vertex<T> v2 = *this->vertices.find(e.getV2());
         v1.addNeighbor(v2);
         this->updateVertices(v1, v2);
-
-        this->edges.insert(e);
     }
 }
 

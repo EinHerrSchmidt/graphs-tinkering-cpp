@@ -59,6 +59,7 @@ protected:
     void updateVertices(Vertex<T> v1, Vertex<T> v2);
     void checkEdgeConsistency(Edge<T> e);
     std::map<Vertex<T>, std::vector<Vertex<T>>> minPaths(Vertex<T> origin);
+    std::map<Vertex<T>, std::vector<Vertex<T>>> buildPathsTable(Vertex<T> origin, std::map<Vertex<T>, Vertex<T>> parents);
 
 public:
     int size() const;
