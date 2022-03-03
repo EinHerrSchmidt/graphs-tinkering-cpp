@@ -223,8 +223,7 @@ map<Vertex<T>, vector<Vertex<T>>> Graph<T>::minPaths(Vertex<T> origin)
         {
             cost = INT_MAX;
         }
-        AugmentedVertex av(v, cost, NULL);
-        queue.insert(av);
+        queue.insert(AugmentedVertex(v, cost, NULL));
         costs[v.getId()] = cost;
     }
     while (!queue.empty())
